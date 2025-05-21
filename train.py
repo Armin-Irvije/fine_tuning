@@ -10,23 +10,31 @@ from transformers import (
     DataCollatorForLanguageModeling
 )
 from peft import get_peft_model, LoraConfig, TaskType
+import mlflow
+from mlflo import setup_mlflow, log_parameters, log_metrics
 
 # Create directories
 os.makedirs('models', exist_ok=True)
 os.makedirs('results', exist_ok=True)
 
+
 torch.manual_seed(42)
 # Configuration
 MODEL_NAME = "openai-community/gpt2"
 OUTPUT_DIR = "models/drug-llm"
-LORA_R = 8
-LORA_ALPHA = 16
+LORA_R = 16
+LORA_ALPHA = 32
 LORA_DROPOUT = 0.1
 BATCH_SIZE = 2
 GRADIENT_ACCUMULATION_STEPS = 8
 LEARNING_RATE = 3e-4
 NUM_EPOCHS = 3
 MAX_LENGTH = 512
+
+
+mlflow.start_run()
+experiment_id = setup_mlflow()
+log_parameters(LORA_R, LORA_ALPHA, LORA_DROPOUT, BATCH_SIZE, GRADIENT_ACCUMULATION_STEPS, LEARNING_RATE, NUM_EPOCHS, MAX_LENGTH)
 
 # Load datasets
 dataset = load_dataset('json', data_files={
@@ -178,7 +186,7 @@ print(f"Base Model - Eval Loss: {base_eval_loss:.4f}, Perplexity: {base_perplexi
 print(f"Fine-tuned - Eval Loss: {ft_eval_loss:.4f}, Perplexity: {ft_perplexity:.4f}")
 print(f"Improvement  - Loss: {base_eval_loss - ft_eval_loss:.4f} ({(1 - ft_eval_loss/base_eval_loss) * 100:.2f}%)")
 print(f"Improvement  - Perplexity: {base_perplexity - ft_perplexity:.4f} ({(1 - ft_perplexity/base_perplexity) * 100:.2f}%)")
-
+log_metrics(ft_eval_loss, ft_perplexity)
 # Save the fine-tuned model
 model.save_pretrained(f"{OUTPUT_DIR}/final")
 tokenizer.save_pretrained(f"{OUTPUT_DIR}/final")
