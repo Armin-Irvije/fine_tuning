@@ -22,7 +22,7 @@ torch.manual_seed(42)
 # Configuration
 MODEL_NAME = "openai-community/gpt2"
 OUTPUT_DIR = "models/drug-llm"
-LORA_R = 16
+LORA_R = 32
 LORA_ALPHA = 32
 LORA_DROPOUT = 0.1
 BATCH_SIZE = 2
